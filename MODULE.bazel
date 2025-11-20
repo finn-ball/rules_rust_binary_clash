@@ -1,0 +1,26 @@
+module(name = "foo")
+
+bazel_dep(name = "rules_rust")
+
+git_override(
+    module_name = "rules_rust",
+    commit = "e413691b6d06f4c0c0df250410a3e93e76d7e200",   # Breaking commit
+    # commit = "8798aca336b58bfe6ce70265e05fa09257a7b86a", # Working commit (commit before the above)
+    remote = "https://github.com/bazelbuild/rules_rust.git",
+)
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(edition = "2021")
+use_repo(
+    rust,
+    "rust_toolchains",
+)
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+crate.spec(
+    package = "cc",
+    version = "1.0",
+)
+crate.from_specs()
+use_repo(crate, "crates")

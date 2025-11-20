@@ -1,0 +1,46 @@
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Library with C code generation
+cargo_build_script(
+    name = "lib_build_script",
+    srcs = ["lib/build.rs"],
+    build_script_env = {
+        "CC": "/usr/bin/gcc",
+    },
+    deps = [
+        "@crates//:cc",
+    ],
+)
+
+rust_library(
+    name = "mylib",
+    srcs = ["lib/lib.rs"],
+    deps = [
+        ":lib_build_script",
+    ],
+)
+
+# Binary that also generates C code with the SAME library name
+# This will FAIL with "undefined symbol" error
+cargo_build_script(
+    name = "bin_build_script",
+    srcs = ["bin/build.rs"],
+    build_script_env = {
+        "CC": "/usr/bin/gcc",
+    },
+    deps = [
+        "@crates//:cc",
+    ],
+)
+
+rust_binary(
+    name = "app",
+    srcs = ["bin/main.rs"],
+    deps = [
+        ":bin_build_script",
+        ":mylib",
+    ],
+)
