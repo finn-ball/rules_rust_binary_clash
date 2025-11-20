@@ -1,0 +1,1 @@
+# rules_rust_binary_clash
